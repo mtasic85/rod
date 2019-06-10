@@ -47,7 +47,7 @@ typedef struct _RArray {
 /*
  * _RArray
  */
-_RArray * _RArray_new(uint64_t cap, uint64_t len, uint64_t item_size);
+_RResult * _RArray_new(uint64_t cap, uint64_t len, uint64_t item_size);
 void _RArray_free(_RArray * self);
 void _RArray_append(_RArray * self, void * item);
 void _RArray_prepend(_RArray * self, void * item);
@@ -58,13 +58,15 @@ void * _RArray_getitem(_RArray * self, uint64_t index);
 void _RArray_setitem(_RArray * self, uint64_t index, void * item);
 void _RArray_delitem(_RArray * self, uint64_t index);
 
-_RArray * _RArray_new(uint64_t cap, uint64_t len, uint64_t item_size) {
+_RResult _RArray_new(uint64_t cap, uint64_t len, uint64_t item_size) {
     _RArray * self = (_RArray *)malloc(sizeof(_RArray));
     self->cap = cap;
     self->len = len;
     self->item_size = item_size;
     self->data = (char*)malloc(self->cap * self->item_size);
-    return self;
+
+    _RResult res = {.type: _R_SOME, .value: {.ok: (void *)self }};
+    return res;
 }
 
 void _RArray_free(_RArray * self) {
@@ -86,7 +88,8 @@ void _RArray_append(_RArray * self, void * item) {
 }
 
 int main(int argc, char * argv[]) {
-    _RArray * a0 = _RArray_new(8, 0, sizeof(int));
+    _RResult r0 = _RArray_new(8, 0, sizeof(int));
+    _RArray * a0 = r0.v
     _RArray_free(a0);
     return 0;
 }
