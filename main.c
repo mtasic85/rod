@@ -161,6 +161,7 @@ int main(int argc, char * argv[]) {
         default:
             printf("error[%d]: supports only _R_OK and _R_ERR\n", __LINE__);
     }
+    
     _R_Array_free(a0);
 
     /*
