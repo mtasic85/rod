@@ -79,7 +79,7 @@ _R_Result _R_Array_setitem(_R_Array * self, uint64_t index, void * item);
 _R_Result _R_Array_delitem(_R_Array * self, uint64_t index);
 
 _R_Result _R_Array_new(uint64_t cap, uint64_t len, uint64_t item_size) {
-    _R_Result res = NULL;
+    _R_Result res;
 
     _R_Array * self = (_R_Array *)malloc(sizeof(_R_Array));
     self->cap = cap;
@@ -87,29 +87,29 @@ _R_Result _R_Array_new(uint64_t cap, uint64_t len, uint64_t item_size) {
     self->item_size = item_size;
     self->data = (char*)malloc(self->cap * self->item_size);
     
-    res = {.type = _R_OK, .value = {.ok = (void *)self}};
+    res = (_R_Result){.type = _R_OK, .value = {.ok = (void *)self}};
     return res;
 }
 
 _R_Result _R_Array_free(_R_Array * self) {
-    _R_Result res = NULL;
+    _R_Result res;
 
     free(self->data);
     free(self);
     
-    res = {.type = _R_OK, .value = {.ok = (void*)self}};
+    res = (_R_Result){.type = _R_OK, .value = {.ok = (void*)self}};
     return res;
 }
 
 _R_Result _R_Array_append(_R_Array * self, void * item) {
-    _R_Result res = NULL;
+    _R_Result res;
     char * reallocated_data = NULL;
 
     if (self->len == self->cap) {
         reallocated_data = (char *)realloc(self->data, self->cap * self->item_size * 2);
 
         if (reallocated_data == NULL) {
-            res = {.type = _R_ERR, .value = {.err = "realloc failed"}};
+            res = (_R_Result){.type = _R_ERR, .value = {.err = "realloc failed"}};
             return res;
         }
 
@@ -120,7 +120,7 @@ _R_Result _R_Array_append(_R_Array * self, void * item) {
     // self->data
     self->len++;
 
-    res = {.type = _R_OK, .value = {.ok = (void*)self}};
+    res = (_R_Result){.type = _R_OK, .value = {.ok = (void*)self}};
     return res;
 }
 
@@ -136,12 +136,17 @@ void * _R_try(_R_Result r) {
             printf("error[%d]: %s\n", __LINE__, r.value.err);
             exit(1);
             break;
+        default:
+            printf("error[%d]: _R_try supports only _R_OK and _R_ERR\n", __LINE__);
     }
 
     return v;
 }
 
 int main(int argc, char * argv[]) {
+    /*
+     * r0
+     */
     _R_Result r0 = _R_Array_new(8, 0, sizeof(int));
     _R_Array * a0 = NULL;
 
@@ -153,11 +158,15 @@ int main(int argc, char * argv[]) {
         case _R_ERR:
             printf("error[%d]: %s\n", __LINE__, r0.value.err);
             break;
+        default:
+            printf("error[%d]: supports only _R_OK and _R_ERR\n", __LINE__);
     }
-
-    _R_Array * a1 = _R_try(_R_Array_new(8, 0, sizeof(int)));
-
     _R_Array_free(a0);
+
+    /*
+     * r1
+     */
+    _R_Array * a1 = _R_try(_R_Array_new(8, 0, sizeof(int)));
     _R_Array_free(a1);
     return 0;
 }
