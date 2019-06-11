@@ -6,75 +6,83 @@
 /*
  * _RResult
  */
-typedef enum _RResultType {
+typedef enum _R_ResultType {
     _R_OK,
     _R_ERR
-} _RResultType;
+} _R_ResultType;
 
-typedef union _RResultHolder {
+typedef union _R_ResultHolder {
     void * ok;
     char * err;
-} _RResultHolder;
+} _R_ResultHolder;
 
-typedef struct _RResult {
-    _RResultType type;
-    _RResultHolder value;
-} _RResult;
+typedef struct _R_Result {
+    _R_ResultType type;
+    _R_ResultHolder value;
+} _R_Result;
 
 /*
  * _ROption
  */
-typedef enum _ROptionType {
+typedef enum _R_OptionType {
     _R_SOME,
     _R_NONE
-} _ROptionType;
+} _R_OptionType;
 
-typedef struct _ROption {
-    _ROptionType type;
+typedef struct _R_Option {
+    _R_OptionType type;
     void * value;
-} _ROption;
+} _R_Option;
 
 /*
  * _RArray
  */
-typedef struct _RArray {
+typedef struct _R_Array {
     uint64_t cap;
     uint64_t len;
     uint64_t item_size;
     char * data;
-} _RArray;
+} _R_Array;
 
 /*
- * _RArray
+ * _R_Array
  */
-_RResult * _RArray_new(uint64_t cap, uint64_t len, uint64_t item_size);
-void _RArray_free(_RArray * self);
-void _RArray_append(_RArray * self, void * item);
-void _RArray_prepend(_RArray * self, void * item);
-void _RArray_remove(_RArray * self, void * item);
-void _RArray_insert(_RArray * self, uint64_t index, void * item);
-uint64_t _RArray_find(_RArray * self, void * item);
-void * _RArray_getitem(_RArray * self, uint64_t index);
-void _RArray_setitem(_RArray * self, uint64_t index, void * item);
-void _RArray_delitem(_RArray * self, uint64_t index);
+_R_Result _R_Array_new(uint64_t cap, uint64_t len, uint64_t item_size);
+void _R_Array_free(_R_Array * self);
+void _R_Array_append(_R_Array * self, void * item);
+void _R_Array_prepend(_R_Array * self, void * item);
+void _R_Array_remove(_R_Array * self, void * item);
+void _R_Array_insert(_R_Array * self, uint64_t index, void * item);
+uint64_t _R_Array_find(_R_Array * self, void * item);
+void * _R_Array_getitem(_R_Array * self, uint64_t index);
+void _R_Array_setitem(_R_Array * self, uint64_t index, void * item);
+void _R_Array_delitem(_R_Array * self, uint64_t index);
 
-_RResult _RArray_new(uint64_t cap, uint64_t len, uint64_t item_size) {
-    _RArray * self = (_RArray *)malloc(sizeof(_RArray));
+_R_Result _R_Array_new(uint64_t cap, uint64_t len, uint64_t item_size) {
+    _R_Array * self = (_R_Array *)malloc(sizeof(_R_Array));
     self->cap = cap;
     self->len = len;
     self->item_size = item_size;
     self->data = (char*)malloc(self->cap * self->item_size);
 
-    _RResult res = {.type: _R_SOME, .value: {.ok: (void *)self }};
+    _R_Result res = {
+        .type = _R_OK,
+        .value = {
+            .ok = (void *)self
+        }
+    };
+
+    // _RResult res = _RRESULT_OK()
+
     return res;
 }
 
-void _RArray_free(_RArray * self) {
+void _R_Array_free(_R_Array * self) {
     free(self->data);
     free(self);
 }
 
-void _RArray_append(_RArray * self, void * item) {
+void _R_Array_append(_R_Array * self, void * item) {
     char * reallocated_data = NULL;
 
     if (self->len == self->cap) {
@@ -87,9 +95,40 @@ void _RArray_append(_RArray * self, void * item) {
     }
 }
 
+void * _R_try(_R_Result r) {
+    void * v = NULL;
+
+    switch (r.type) {
+        case _R_OK:
+            v = r.value.ok;
+            printf("value[%d]: %p\n", __LINE__, r.value.ok);
+            break;
+        case _R_ERR:
+            printf("error[%d]: %s\n", __LINE__, r.value.err);
+            exit(1);
+            break;
+    }
+
+    return v;
+}
+
 int main(int argc, char * argv[]) {
-    _RResult r0 = _RArray_new(8, 0, sizeof(int));
-    _RArray * a0 = r0.v
-    _RArray_free(a0);
+    _R_Result r0 = _R_Array_new(8, 0, sizeof(int));
+    _R_Array * a0 = NULL;
+
+    switch (r0.type) {
+        case _R_OK:
+            printf("value[%d]: %p\n", __LINE__, r0.value.ok);
+            a0 = r0.value.ok;
+            break;
+        case _R_ERR:
+            printf("error[%d]: %s\n", __LINE__, r0.value.err);
+            break;
+    }
+
+    _R_Array * a1 = _R_try(_R_Array_new(8, 0, sizeof(int)));
+
+    _R_Array_free(a0);
+    _R_Array_free(a1);
     return 0;
 }
