@@ -1,7 +1,65 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <threads.h>
+
+enum _R_Type;
+union _R_Value;
+struct _R_Struct;
+struct _R_Union;
+struct _R_Enum;
+
+typedef enum _R_Type {
+    _R_TYPE_B,
+    _R_TYPE_I8,
+    _R_TYPE_U8,
+    _R_TYPE_I16,
+    _R_TYPE_U16,
+    _R_TYPE_I32,
+    _R_TYPE_U32,
+    _R_TYPE_I64,
+    _R_TYPE_U64,
+    _R_TYPE_F32,
+    _R_TYPE_F64,
+    _R_TYPE_C,
+    _R_TYPE_P
+} _R_Type;
+
+typedef union _R_Value {
+    bool b;
+    int8_t i8;
+    uint8_t u8;
+    int16_t i16;
+    uint16_t u16;
+    int32_t i32;
+    uint32_t u32;
+    int64_t i64;
+    uint64_t u64;
+    float f32;
+    double f64;
+    char *c;
+    void *p;
+} _R_Value;
+
+typedef struct _R_Object {
+    _R_Type type;
+    _R_Value value;
+} _R_Object;
+
+typedef struct _R_Struct {
+    char *name;
+    char **attrs;
+    int *sizes;
+} _R_Struct;
+
+typedef struct _R_Union {
+
+} _R_Union;
+
+typedef struct _R_Enum {
+
+} _R_Enum;
 
 /*
  * _RResult
@@ -22,7 +80,7 @@ typedef enum _R_ResultType {
 } _R_ResultType;
 
 typedef union _R_ResultHolder {
-    void * ok;
+    void* ok;
     int8_t i8;
     uint8_t u8;
     int16_t i16;
@@ -40,19 +98,6 @@ typedef struct _R_Result {
     _R_ResultType type;
     _R_ResultHolder value;
 } _R_Result;
-
-/*
- * _ROption
- */
-typedef enum _R_OptionType {
-    _R_SOME,
-    _R_NONE
-} _R_OptionType;
-
-typedef struct _R_Option {
-    _R_OptionType type;
-    void * value;
-} _R_Option;
 
 /*
  * _RArray
@@ -161,7 +206,7 @@ int main(int argc, char * argv[]) {
         default:
             printf("error[%d]: supports only _R_OK and _R_ERR\n", __LINE__);
     }
-    
+
     _R_Array_free(a0);
 
     /*
