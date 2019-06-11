@@ -8,11 +8,31 @@
  */
 typedef enum _R_ResultType {
     _R_OK,
+    _R_OK_I8,
+    _R_OK_U8,
+    _R_OK_I16,
+    _R_OK_U16,
+    _R_OK_I32,
+    _R_OK_U32,
+    _R_OK_I64,
+    _R_OK_U64,
+    _R_OK_F32,
+    _R_OK_F64,
     _R_ERR
 } _R_ResultType;
 
 typedef union _R_ResultHolder {
     void * ok;
+    int8_t i8;
+    uint8_t u8;
+    int16_t i16;
+    uint16_t u16;
+    int32_t i32;
+    uint32_t u32;
+    int64_t i64;
+    uint64_t u64;
+    float f32;
+    double f64;
     char * err;
 } _R_ResultHolder;
 
@@ -48,51 +68,60 @@ typedef struct _R_Array {
  * _R_Array
  */
 _R_Result _R_Array_new(uint64_t cap, uint64_t len, uint64_t item_size);
-void _R_Array_free(_R_Array * self);
-void _R_Array_append(_R_Array * self, void * item);
-void _R_Array_prepend(_R_Array * self, void * item);
-void _R_Array_remove(_R_Array * self, void * item);
-void _R_Array_insert(_R_Array * self, uint64_t index, void * item);
-uint64_t _R_Array_find(_R_Array * self, void * item);
-void * _R_Array_getitem(_R_Array * self, uint64_t index);
-void _R_Array_setitem(_R_Array * self, uint64_t index, void * item);
-void _R_Array_delitem(_R_Array * self, uint64_t index);
+_R_Result _R_Array_free(_R_Array * self);
+_R_Result _R_Array_append(_R_Array * self, void * item);
+_R_Result _R_Array_prepend(_R_Array * self, void * item);
+_R_Result _R_Array_remove(_R_Array * self, void * item);
+_R_Result _R_Array_insert(_R_Array * self, uint64_t index, void * item);
+_R_Result _R_Array_find(_R_Array * self, void * item);
+_R_Result _R_Array_getitem(_R_Array * self, uint64_t index);
+_R_Result _R_Array_setitem(_R_Array * self, uint64_t index, void * item);
+_R_Result _R_Array_delitem(_R_Array * self, uint64_t index);
 
 _R_Result _R_Array_new(uint64_t cap, uint64_t len, uint64_t item_size) {
+    _R_Result res = NULL;
+
     _R_Array * self = (_R_Array *)malloc(sizeof(_R_Array));
     self->cap = cap;
     self->len = len;
     self->item_size = item_size;
     self->data = (char*)malloc(self->cap * self->item_size);
-
-    _R_Result res = {
-        .type = _R_OK,
-        .value = {
-            .ok = (void *)self
-        }
-    };
-
-    // _RResult res = _RRESULT_OK()
-
+    
+    res = {.type = _R_OK, .value = {.ok = (void *)self}};
     return res;
 }
 
-void _R_Array_free(_R_Array * self) {
+_R_Result _R_Array_free(_R_Array * self) {
+    _R_Result res = NULL;
+
     free(self->data);
     free(self);
+    
+    res = {.type = _R_OK, .value = {.ok = (void*)self}};
+    return res;
 }
 
-void _R_Array_append(_R_Array * self, void * item) {
+_R_Result _R_Array_append(_R_Array * self, void * item) {
+    _R_Result res = NULL;
     char * reallocated_data = NULL;
 
     if (self->len == self->cap) {
-        self->cap *= 2;
         reallocated_data = (char *)realloc(self->data, self->cap * self->item_size * 2);
 
-        if (reallocated_data != NULL) {
-
+        if (reallocated_data == NULL) {
+            res = {.type = _R_ERR, .value = {.err = "realloc failed"}};
+            return res;
         }
+
+        self->cap *= 2;
+        self->data = reallocated_data;
     }
+
+    // self->data
+    self->len++;
+
+    res = {.type = _R_OK, .value = {.ok = (void*)self}};
+    return res;
 }
 
 void * _R_try(_R_Result r) {
